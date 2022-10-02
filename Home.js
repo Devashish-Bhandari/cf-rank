@@ -1,18 +1,22 @@
-const key=1;
+const key='cf-usernames';
 
+// FUNCTION TO ADD THE USERS
 async function addUser(user){
     let res= await fetch(`https://codeforces.com/api/user.rating?handle=${user}`);
     let data= await res.json();
     let temp = await data.status;
 
-    if(temp == "FAILED") return;
+    if(temp == "FAILED"){
+        alert("No user with this name found");
+        return;
+    } 
 
-    // IF NOT INITIALIZED AND WHEN DELETE ON LENGTH = 1, CLEAR STORAGE
+    // IF NOT INITIALIZED, WHEN DELETE ON LENGTH = 1=> CLEAR STORAGE AND ADD TO IT THIS USER
     if(localStorage.getItem(key)==null){
         let arr= [];
         arr.push(user);
 
-        localStorage.clear();
+        localStorage.removeItem(key);
 
         let strArr = JSON.stringify(arr);
         localStorage.setItem(key,strArr);
@@ -21,11 +25,12 @@ async function addUser(user){
         return;
     }
 
+    // If the array is not null, go with this 
     let arrayString = localStorage.getItem(key);
     let arr= JSON.parse(arrayString);
     arr.push(user);
 
-    localStorage.clear();
+    localStorage.removeItem(key);
 
     let strArr = JSON.stringify(arr);
     localStorage.setItem(key, strArr);
@@ -36,8 +41,8 @@ async function addUser(user){
 
 //Adding Event Listener to Add Button
 document.getElementById("add").addEventListener('click', ()=> {
-    let inputUsesr = document.getElementById("input-field").value;
-    addUser(inputUsesr);
+    let inputUsers = document.getElementById("input-field").value;
+    addUser(inputUsers);
 })
 
 //Creates User string on newly generated array and then call for fetch
@@ -100,13 +105,14 @@ async function display(usersString){
 
     for(const x of resultArray){
         let fullName = x.firstName + " " + x.lastName;
+        let imgSrc= "http:"+x.titlePhoto;
 
         document.getElementById("cards-div").innerHTML += `
         <div class="card">
             <div class="title-section">
                 <div class="user-info-section">
                     <div class="user-img-div">
-                        <img src="${x.titlePhoto}" alt="" class="user-img">
+                        <img src=${imgSrc} alt="" class="user-img">
                     </div>
                     <div class="name-section">
                         <div class="name-div">

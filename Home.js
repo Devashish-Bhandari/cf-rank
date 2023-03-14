@@ -1,22 +1,18 @@
-const key='cf-usernames';
+const key=1;
 
-// FUNCTION TO ADD THE USERS
 async function addUser(user){
     let res= await fetch(`https://codeforces.com/api/user.rating?handle=${user}`);
     let data= await res.json();
     let temp = await data.status;
 
-    if(temp == "FAILED"){
-        alert("No user with this name found");
-        return;
-    } 
+    if(temp == "FAILED") return;
 
-    // IF NOT INITIALIZED, WHEN DELETE ON LENGTH = 1=> CLEAR STORAGE AND ADD TO IT THIS USER
+    // IF NOT INITIALIZED AND WHEN DELETE ON LENGTH = 1, CLEAR STORAGE
     if(localStorage.getItem(key)==null){
         let arr= [];
         arr.push(user);
 
-        localStorage.removeItem(key);
+        localStorage.clear();
 
         let strArr = JSON.stringify(arr);
         localStorage.setItem(key,strArr);
@@ -25,12 +21,11 @@ async function addUser(user){
         return;
     }
 
-    // If the array is not null, go with this 
     let arrayString = localStorage.getItem(key);
     let arr= JSON.parse(arrayString);
     arr.push(user);
 
-    localStorage.removeItem(key);
+    localStorage.clear();
 
     let strArr = JSON.stringify(arr);
     localStorage.setItem(key, strArr);
@@ -41,8 +36,8 @@ async function addUser(user){
 
 //Adding Event Listener to Add Button
 document.getElementById("add").addEventListener('click', ()=> {
-    let inputUsers = document.getElementById("input-field").value;
-    addUser(inputUsers);
+    let inputUsesr = document.getElementById("input-field").value;
+    addUser(inputUsesr);
 })
 
 //Creates User string on newly generated array and then call for fetch
@@ -72,29 +67,46 @@ async function returnUsers(){
 
 }
 
-function deleteUser(user){
-    console.log(document.getElementById("deleteIt"));
-    console.log("deleted "+ user);
-    let arrayString = localStorage.getItem(key);
-    let arr = JSON.parse(arrayString);
+// DELETE SINGLE ELEMENT
+// Adding event listener to the entire div
+// This way event listener will be imposed to all the newly added cards
+let allItems= document.getElementById('cards-div');
+allItems.addEventListener('click', deleteFunction);
 
-    for(const item of arr){
-        if(item == user){
-            arr.splice(item,1);
+function deleteFunction(e){
+    console.log(e.target);
+    if(e.target.classList.contains('delete')){
+        if(confirm('Do you want to delete the item?')){
+            console.log("button confirmed");
+
+            // This is done to reach to the super grand parent of the button which was clicked
+            let btnParent= e.target.parentElement.parentElement.parentElement.parentElement;
+            let user= btnParent.id;
+
+            btnParent.remove();
+            let arrString= localStorage.getItem(key);
+            let arr= JSON.parse(arrString);
+            
+            let newArr= [];
+            for(const item of arr){
+                if(item !== user){
+                    newArr.push(item);
+                }
+            }
+            console.log("newarr", newArr);
+            let strArr= JSON.stringify(newArr);
+            
+            console.log("strarr" , strArr);
+            localStorage.setItem(key, strArr);
         }
+
+        console.log("clicked");
     }
-
-    console.log(arr);
-
-    localStorage.clear();
-
-    let strArr = JSON.stringify(arr);
-    localStorage.setItem(key, strArr);
-
-    returnUsers();
 }
 
 
+
+// WILL DISPLAY THE USERS
 async function display(usersString){
     
     let res= await fetch("https://codeforces.com/api/user.info?handles="+usersString);
@@ -105,14 +117,13 @@ async function display(usersString){
 
     for(const x of resultArray){
         let fullName = x.firstName + " " + x.lastName;
-        let imgSrc= "http:"+x.titlePhoto;
 
         document.getElementById("cards-div").innerHTML += `
-        <div class="card">
-            <div class="title-section">
+        <div class="card" id=${x.handle}>
+            <div class="title-section" >
                 <div class="user-info-section">
                     <div class="user-img-div">
-                        <img src=${imgSrc} alt="" class="user-img">
+                        <img src="${x.titlePhoto}" alt="" class="user-img">
                     </div>
                     <div class="name-section">
                         <div class="name-div">
@@ -125,14 +136,14 @@ async function display(usersString){
 
                 </div>
                 
-                <!--<div class="bin-section" >
+                <!-- To Delete -->
+                <div class="bin-section" >
                     <div class="bin-icon">
-                    <button class="delete">
-                        <span class="material-icons-outlined">delete</span>
-
-                    </button>
+                        <button class="delete material-icons-outlined">
+                            delete
+                        </button>
                     </div>
-                </div> -->
+                </div>
             </div>
 
             <div class="ratings-section">
@@ -151,13 +162,6 @@ async function display(usersString){
                 </div>
             </div>
         </div>`;
-
-        // document.querySelector(`#${x.handle}`).addEventListener('click', (e) =>{
-
-        //     e.preventDefault();
-
-        //     deleteUser(x.handle);
-        // });
 
     }
 
